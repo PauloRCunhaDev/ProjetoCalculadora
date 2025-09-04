@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- links das fontes de texto -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -10,6 +11,7 @@
       rel="stylesheet"
     />
     <title>Rocketseat - React.js - Fundamentos</title>
+    <!-- variaveis de estilo utilizadas no root -->
     <style type="text/tailwindcss">
       :root {
         --text: #ebebeb;
@@ -39,56 +41,62 @@
   >
     <div id="root"></div>
 
+    <!-- chamando o react, virtual DOM, babel e tailwindcss -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 
+    <!-- script com as variaveis que serão convertidas pelo babel -->
     <script type="text/babel">
+      // objeto com as variantes de texto
       const textVariants = {
         default: "text-xl",
         muted: "text-xl text-(--text-secundary)",
         heading: "text-2xl",
         blast: "text-3xl",
       };
-
+      // função que cria um elemento html com o tailwind(css)
       function Text({
-        as = "span",
-        variant = "default",
-        className,
-        children,
-        ...props
+        as = "span", // tag
+        variant = "default", // variante do texto
+        className, // estilos de tailWind(css)
+        children, // texto da tag
+        ...props // spread - passa todas as props de pai para filho, exp: onClick, placehoulder e etc
       }) {
         return React.createElement(
           as,
           {
-            className: `${textVariants[variant]} ${className ? className : ""}`,
+            className: `${textVariants[variant]} ${className ? className : ""}`, // o elemento é criado com variação de texto "variant" e tailWind(css), além de outras props
             ...props,
           },
           children
         );
       }
 
+      // objeto com as variantes do botão
       const buttonVariants = {
         default: "bg-(--background)",
-        default: "bg-(--primary)",
+        primary: "bg-(--primary)",
       };
 
+      // função que cria o elemento botão
       function Button({ variant = "default", className, children, ...props }) {
         return (
           <Text
             as="button"
             variant="heading"
             className={`flex items-center justify-center rounded-xl p-3 cursor-pointer text-(--text) bg-linear-(--gradient) hover:bg-linear-(--gradient-hover) shadow-(--shadow) ${
-              buttonVariants[variant]
-            } ${className ? className : ""}`}
-            {...props}
+              buttonVariants[variant] // adiciona a variação de botão "variant"
+            } ${className ? className : ""}`} // adiciona a personalização do tailwind(css)
+            {...props} // adiciona as props ao botão
           >
             {children}
           </Text>
         );
       }
 
+      // função que cria o card da calculadora
       function Card({ children, className, ...props }) {
         return (
           <div
@@ -101,6 +109,15 @@
         );
       }
 
+      const buttonsCal = [
+        [{ input: "CE" }, { input: "C", className: "flex-1 w-16" }, { input: "/", variant: "primary" }],
+        [{ input: "7"}, { input: "8"}, { input: "9" }, { input: "*", variant: "primary" }],
+        [{ input: "4" }, { input: "5" }, { input: "6" }, { input: "-", variant: "primary" }],
+        [{ input: "1" }, { input: "2" }, { input: "3" }, { input: "+", variant: "primary" }],
+        [{ input: "0", className: "flex-1 w-16" }, { input: "." }, { input: "=", variant: "primary" }]
+      ]
+
+      // função para exibir a operação e resultado
       function CalculatorDisplay({ operation, result }) {
         return (
           <div
@@ -121,60 +138,50 @@
         );
       }
 
+      // função para exibir os botões da calculadora
       function Calculator() {
+        const [operation, setOperation] = React.useState("")
+        const [result, setResult] = React.useState("")
+
+        function pressButton(input) {
+          if (input === "CE") return (setOperation(""), setResult(""))
+          
+          if (input === "C") return setOperation("")
+
+          if (input === "=") return (setOperation(result), setResult(() => eval(result)))
+
+          if (input === "+" || input === "-" || input === "*" || input === "/") {
+            return setResult(result + " " + input + " ")
+          }
+
+          return setResult(result + input)
+        }
+
         return (
           <Card
             className={`flex flex-col gap-[1.625rem] w-[22.25rem] pt-14 px-8 pb-8`}
           >
-            <CalculatorDisplay operation="1 + 1" result="2" />
+            <CalculatorDisplay operation={operation} result={result} />
 
             <div className={`flex flex-col gap-3`}>
-              <div className={`flex gap-3`}>
-                <Button className={`w-16 h-16`}>CE</Button>
-                <Button className={`flex-1 h-16`}>C</Button>
-                <Button className={`w-16 h-16`} variant="primary"></Button>
-              </div>
-              <div className={`flex gap-3`}>
-                <Button className={`w-16 h-16`}>7</Button>
-                <Button className={`w-16 h-16`}>8</Button>
-                <Button className={`w-16 h-16`}>9</Button>
-                <Button className={`w-16 h-16`} variant="primary">
-                  X
-                </Button>
-              </div>
-              <div className={`flex gap-3`}>
-                <Button className={`w-16 h-16`}>4</Button>
-                <Button className={`w-16 h-16`}>5</Button>
-                <Button className={`w-16 h-16`}>6</Button>
-                <Button className={`w-16 h-16`} variant="primary">
-                  -
-                </Button>
-              </div>
-              <div className={`flex gap-3`}>
-                <Button className={`w-16 h-16`}>1</Button>
-                <Button className={`w-16 h-16`}>2</Button>
-                <Button className={`w-16 h-16`}>3</Button>
-                <Button className={`w-16 h-16`} variant="primary">
-                  +
-                </Button>
-              </div>
-              <div className={`flex gap-3`}>
-                <Button className={`flex-1 h-16`}>0</Button>
-                <Button className={`w-16 h-16`}>,</Button>
-                <Button className={`w-16 h-16`} variant="primary">
-                  =
-                </Button>
-              </div>
+              { buttonsCal.map((row, index) => (
+                <div key={`row-${index}`} className="flex gap-3">
+                  { row.map(button => (
+                    <Button key={button.input} className={button.className || "w-16 h-16"} variant={button.variant} onClick={() => pressButton(button.input)}>{button.input}</Button>
+                  )) }
+                </div>
+              )) }
             </div>
           </Card>
         );
       }
 
+      // função que cria o card e o diplay do historico das operações realizadas
       function OperationHistory() {
         return (
           <Card className={`py-10 px-8`}>
             <Text as="h1" variant="heading" className={`mb-4`}>
-              Hisotrico de Operações
+              Histórico de Operações
             </Text>
 
             <ul className={`flex flex-col gap-3`}>
@@ -186,6 +193,7 @@
         );
       }
 
+      // função que será renderizada pelo react no navegador
       function App() {
         return (
           <main
@@ -197,6 +205,7 @@
         );
       }
 
+      // cria a root dentro da "<div id="root">" que irar renderizar a função App()
       ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
   </body>
