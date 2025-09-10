@@ -117,6 +117,23 @@
         [{ input: "0", className: "flex-1 w-16" }, { input: "." }, { input: "=", variant: "primary" }]
       ]
 
+      const CalculatorContext = React.createContext()
+      function CalculatorProvider({ children }) {
+        const [operationList, setOperationList] = React.useState([])
+
+        function addOperation(operation, result) {
+          return setOperationList((prevList) => [...prevList, `${operation} = ${result}`])
+        }
+
+        return (
+          <CalculatorContext.Provider
+            value={{ operationList, addOperation }}
+          >
+            { children }
+          </CalculatorContext.Provider>
+        )
+      }
+
       // função para exibir a operação e resultado
       function CalculatorDisplay({ operation, result }) {
         return (
@@ -142,19 +159,35 @@
       function Calculator() {
         const [operation, setOperation] = React.useState("")
         const [result, setResult] = React.useState("")
+        const { addOperation } = React.useContext(CalculatorContext)
 
         function pressButton(input) {
-          if (input === "CE") return (setOperation(""), setResult(""))
-          
-          if (input === "C") return setOperation("")
-
-          if (input === "=") return (setOperation(result), setResult(() => eval(result)))
-
-          if (input === "+" || input === "-" || input === "*" || input === "/") {
-            return setResult(result + " " + input + " ")
+          if (input === "CE") {
+            setOperation("")
+            setResult("")
+            return
           }
 
-          return setResult(result + input)
+          if (input === "C") {
+            setOperation("")
+            return
+          }
+
+          if (input === "=") {
+            if (isNaN(result) && result !== eval(result)) {
+              setOperation(result)
+              setResult(() => eval(result))
+              addOperation(result, eval(result))
+            }
+            return
+          }
+
+          if (input === "+" || input === "-" || input === "*" || input === "/") {
+            setResult(result + " " + input + " ")
+            return
+          }
+          
+          setResult(result + input)
         }
 
         return (
@@ -178,6 +211,8 @@
 
       // função que cria o card e o diplay do historico das operações realizadas
       function OperationHistory() {
+        const { operationList } = React.useContext(CalculatorContext)
+
         return (
           <Card className={`py-10 px-8`}>
             <Text as="h1" variant="heading" className={`mb-4`}>
@@ -185,9 +220,9 @@
             </Text>
 
             <ul className={`flex flex-col gap-3`}>
-              <Text as="li">1 + 1 = 2</Text>
-              <Text as="li"> 2 + 3 + 1 =6</Text>
-              <Text as="li">2 + 3 = 5</Text>
+              { operationList.map((operation, index) => 
+                <Text key={`operation-${index}`} as="li">{ operation }</Text>
+              ) }
             </ul>
           </Card>
         );
@@ -199,8 +234,10 @@
           <main
             className={`py-28 px-4 sm:px-10 flex flex-col sm:flex-row items-center sm:items-stretch gap-2`}
           >
-            <Calculator />
-            <OperationHistory />
+            <CalculatorProvider>
+              <Calculator />
+              <OperationHistory />
+            </CalculatorProvider>
           </main>
         );
       }
