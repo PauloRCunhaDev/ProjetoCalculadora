@@ -120,14 +120,32 @@
       const CalculatorContext = React.createContext()
       function CalculatorProvider({ children }) {
         const [operationList, setOperationList] = React.useState([])
+        const historyStorageKey = 'history'
+
+        React.useEffect(() => {
+          if (localStorage.getItem(historyStorageKey)) {
+            const savedOperations = localStorage.getItem(historyStorageKey);
+            setOperationList(JSON.parse(savedOperations))
+          }
+        }, [])
 
         function addOperation(operation, result) {
-          return setOperationList((prevList) => [...prevList, `${operation} = ${result}`])
+          return setOperationList((prevList) => {
+            const updateHistory = [...prevList, `${operation} = ${result}`];
+            localStorage.setItem(historyStorageKey, JSON.stringify(updateHistory));
+            
+            return updateHistory
+          })
+        }
+
+        function removeHistory() {
+          localStorage.setItem(historyStorageKey, "")
+          return setOperationList([])
         }
 
         return (
           <CalculatorContext.Provider
-            value={{ operationList, addOperation }}
+            value={{ operationList, addOperation, removeHistory }}
           >
             { children }
           </CalculatorContext.Provider>
@@ -211,12 +229,13 @@
 
       // função que cria o card e o diplay do historico das operações realizadas
       function OperationHistory() {
-        const { operationList } = React.useContext(CalculatorContext)
+        const { operationList, removeHistory } = React.useContext(CalculatorContext)
 
         return (
           <Card className={`py-10 px-8`}>
-            <Text as="h1" variant="heading" className={`mb-4`}>
+            <Text as="h1" variant="heading" className={`mb-4 flex items-center gap-3`}>
               Histórico de Operações
+              <Button variant="primary" onClick={() => removeHistory()}>x</Button>
             </Text>
 
             <ul className={`flex flex-col gap-3`}>
